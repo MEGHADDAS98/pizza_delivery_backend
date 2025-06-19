@@ -1,65 +1,80 @@
-✅ Final polish done!
+# core/models.py
+from django.db import models
+from django.conf import settings
 
-Here’s what we just added to **finish cleanly**:
+class Order(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    total_price = models.DecimalField(max_digits=8, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=[('cash', 'Cash'), ('online', 'Online')])
+    delivery_status = models.CharField(max_length=20, default='Pending')
+    delivery_comment = models.TextField(blank=True, null=True)
+    delivery_partner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='deliveries')
 
----
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    pizza = models.ForeignKey('Pizza', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
 
-## ⭐ New Feature: Pizza Rating API
+class PizzaRating(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    pizza = models.ForeignKey('Pizza', on_delete=models.CASCADE, related_name='ratings')
+    rating = models.IntegerField()  # 1 to 5
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-### ➕ POST `/api/rate-pizza/`
 
-* Add rating (1–5 stars) and comment
+# core/serializers.py
+from .models import Order, OrderItem, PizzaRating
+from rest_framework import serializers
 
-```json
-{
-  "pizza": 1,
-  "rating": 4,
-  "comment": "Tasty and hot!"
-}
-```
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['pizza', 'quantity']
 
-### 📄 GET `/api/rate-pizza/?pizza_id=1`
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
 
-* View all ratings for a specific pizza
+    class Meta:
+        model = Order
+        fields = ['id', 'user', 'created_at', 'total_price', 'payment_method', 'delivery_status', 'delivery_comment', 'items']
 
-🧑‍🍳 Now customers can rate pizzas after ordering!
+class PizzaRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PizzaRating
+        fields = ['id', 'pizza', 'rating', 'comment', 'created_at']
 
----
 
-## 🔍 Bonus: Filtering Pizzas (No code needed!)
+# core/views.py (append this)
+from .models import PizzaRating, Pizza
+from .serializers import PizzaRatingSerializer
 
-In your `PizzaListCreateView.get()` logic, update like this:
+class PizzaRatingView(APIView):
+    permission_classes = [IsAuthenticated]
 
-```python
-def get(self, request):
-    pizza_type = request.query_params.get('type')
-    pizzas = Pizza.objects.all()
-    if pizza_type:
-        pizzas = pizzas.filter(type=pizza_type)
-    serializer = PizzaSerializer(pizzas, many=True)
-    return Response(serializer.data)
-```
+    def post(self, request):
+        data = request.data.copy()
+        data['user'] = request.user.id
+        serializer = PizzaRatingSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
-### Example Usage:
+    def get(self, request):
+        pizza_id = request.query_params.get('pizza_id')
+        if pizza_id:
+            ratings = PizzaRating.objects.filter(pizza_id=pizza_id)
+        else:
+            ratings = PizzaRating.objects.all()
+        serializer = PizzaRatingSerializer(ratings, many=True)
+        return Response(serializer.data)
 
-* `/api/pizzas/?type=veg` → shows only veg pizzas
 
----
+# core/urls.py (append this)
+from .views import PizzaRatingView
 
-## ✅ Your Pizza Backend Is Now:
-
-* **Auth secured**
-* **Role-aware**
-* **Cart and Checkout ready**
-* **Order-tracked**
-* **Deliverable**
-* **Rateable**
-* **Filterable**
-
-🎉 Ready for frontend, deployment, or API docs. Let me know if you want:
-
-* Swagger/OpenAPI integration
-* Deployment on Render or Railway
-* Postman collection export
-
-You're done like a pro 🧑‍💻🍕💥
+urlpatterns += [
+    path('rate-pizza/', PizzaRatingView.as_view(), name='pizza-rating'),
+]
