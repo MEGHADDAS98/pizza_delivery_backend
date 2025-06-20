@@ -1,0 +1,188 @@
+# 🍕 Pizza Delivery Backend – Django REST API
+
+This is a role-based Django backend system designed for a standalone pizza delivery store. It supports customers, admins, and delivery partners with complete CRUD and order management functionality, secured via JWT authentication.
+
+---
+
+## 🚀 Features
+
+### 👥 Role-Based Access:
+- **Customer**: Browse pizzas, manage cart, checkout, view orders, rate pizzas
+- **Admin**: Manage pizzas, view ratings, manage users
+- **Delivery Partner**: Update order delivery status, add delivery comments
+
+### 🔧 Tech Stack
+- Django, Django REST Framework
+- SQLite (PostgreSQL-ready)
+- JWT Auth via `SimpleJWT`
+- Docker & Docker Compose
+- Postman for API testing
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1. Clone and Navigate
+```bash
+git clone https://github.com/your-repo/pizza-delivery-backend.git
+cd pizza-delivery-backend
+```
+
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Apply Migrations
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### 4. Run Development Server
+```bash
+python manage.py runserver
+```
+
+### 5. (Optional) Run with Docker
+```bash
+docker-compose up --build
+```
+
+---
+
+## 🔐 Authentication APIs
+
+### `POST /register/`
+Register a new user
+```json
+{
+  "username": "customer1",
+  "email": "test@example.com",
+  "password": "pass1234",
+  "role": "customer"
+}
+```
+
+### `POST /login/`
+Login and get access + refresh tokens
+
+### `POST /token/refresh/`
+Refresh an expired access token
+
+---
+
+## 🍕 Pizza APIs
+
+### `GET /pizzas/`
+List all available pizzas
+
+### `POST /pizzas/` *(Admin only)*
+Create a new pizza
+
+### `PATCH /pizzas/<id>/` *(Admin only)*
+Update pizza details
+
+### `DELETE /pizzas/<id>/` *(Admin only)*
+Delete a pizza
+
+### `GET /pizzas/?type=veg`
+Filter pizzas by type (veg / non-veg)
+
+---
+
+## 🛒 Cart APIs
+
+### `GET /cart/`
+View current cart for logged-in user
+
+### `POST /cart/`
+Add pizza to cart
+```json
+{
+  "pizza_id": 1,
+  "quantity": 2
+}
+```
+
+### `DELETE /cart/`
+Clear entire cart
+
+---
+
+## ✅ Checkout & Orders
+
+### `POST /checkout/`
+Checkout the current cart
+```json
+{
+  "payment_mode": "online"
+}
+```
+
+### `GET /orders/`
+List past orders for the user
+
+---
+
+## 🚚 Delivery Partner APIs
+
+### `PATCH /orders/<id>/update-status/`
+Update delivery status (e.g., "delivered")
+
+### `POST /delivery-comments/`
+Add a delivery comment
+```json
+{
+  "order_id": 1,
+  "comment": "Delivered to security gate"
+}
+```
+
+---
+
+## ⭐ Rating APIs
+
+### `POST /rate-pizza/`
+Rate a pizza
+```json
+{
+  "pizza": 1,
+  "rating": 5,
+  "comment": "Amazing taste!"
+}
+```
+
+### `GET /rate-pizza/?pizza_id=1`
+View all ratings for a specific pizza
+
+---
+
+## 👤 User APIs
+
+### `PATCH /users/<id>/`
+Admin updates user details (email, role, etc.)
+
+---
+
+## 📦 Docker Commands
+
+### Build and Run
+```bash
+docker-compose up --build
+```
+
+### Run Django Commands Inside Container
+```bash
+docker-compose exec web python manage.py migrate
+```
+
+---
+
+## 📬 Postman Collection
+You can test all endpoints with Postman. Exported `.json` collection available in the `/docs/` folder (optional).
+
+---
+
+## 📄 License
+MIT
