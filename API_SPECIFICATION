@@ -1,0 +1,140 @@
+openapi: 3.0.0
+info:
+  title: Student Registration API
+  version: '1.0'
+  description: |
+    This API endpoint is used to register or enroll a new student in the system.
+    **Note:** This is NOT a login or authentication endpoint. Use this endpoint when you need to create a new student record or enroll a student with their details.
+    The endpoint is protected and requires a valid API key (provided via the **X-API-Key** header).
+servers:
+  - url: https://api.example.com
+paths:
+  /api/student:
+    post:
+      summary: Register or Enroll a New Student
+      description: |
+        Register or enroll a new student in the system. This endpoint should be called when a student is being created or enrolled for the first time, such as during a sign-up or onboarding process.
+        It accepts student details (ID, identifier, gender) and an agent identifier (the system or agent performing the registration).
+        **Important:** This is *not* a login endpoint; it should only be used for one-time student registration or enrollment events. A valid API key must be provided via the `X-API-Key` header to successfully invoke this operation.
+      operationId: registerStudent
+      tags:
+        - Student Enrollment
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - student_id
+                - student_identifier
+                - student_gender
+                - agent_identifier
+              properties:
+                student_id:
+                  type: string
+                  description: Unique ID of the student (e.g., a numeric or alphanumeric identifier).
+                student_identifier:
+                  type: string
+                  description: Alternate unique identifier for the student (for example, an enrollment number or external system ID).
+                student_gender:
+                  type: string
+                  description: Gender of the student (e.g., "M" for male, "F" for female, etc.).
+                agent_identifier:
+                  type: string
+                  description: Identifier for the agent or system initiating the student registration.
+      responses:
+        '200':
+          description: |
+            OK. Student successfully registered/enrolled.
+            The response contains a JSON object with various student-related data arrays and a status indicator.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  studentAddress:
+                    type: array
+                    description: Array of address records associated with the student.
+                    items:
+                      type: object
+                  studentEnrollment:
+                    type: array
+                    description: Array of enrollment records for the student.
+                    items:
+                      type: object
+                  studentParentIncome:
+                    type: array
+                    description: Array of parent income records for the student.
+                    items:
+                      type: object
+                  studentPeriod:
+                    type: array
+                    description: Array of period (term/semester) records for the student.
+                    items:
+                      type: object
+                  studentLocation:
+                    type: array
+                    description: Array of location records for the student.
+                    items:
+                      type: object
+                  studentStudyMonths:
+                    type: array
+                    description: Array of study month records associated with the student.
+                    items:
+                      type: object
+                  studentRequest:
+                    type: array
+                    description: Array representing the original request details.
+                    items:
+                      type: object
+                  studentResponseCode:
+                    type: array
+                    description: Array of response codes or messages related to the student operation.
+                    items:
+                      type: object
+                  studentProfile:
+                    type: array
+                    description: Array of profile records for the student.
+                    items:
+                      type: object
+                  data:
+                    type: array
+                    description: General data array related to the operation.
+                    items:
+                      type: object
+                  httpResponse:
+                    type: array
+                    description: HTTP response details from the server (for logging or audit purposes).
+                    items:
+                      type: object
+                  httpRequest:
+                    type: array
+                    description: HTTP request details from the client (for logging or audit purposes).
+                    items:
+                      type: object
+                  status:
+                    type: string
+                    description: Status message or code indicating the result of the operation.
+        '401':
+          description: Unauthorized – Invalid or missing API key.
+        '402':
+          description: Invalid request data – The input data is malformed or missing required fields.
+        '404':
+          description: Not Found – The specified endpoint or resource was not found.
+        '424':
+          description: Failed Dependency – Required dependent service (e.g., logging) is unavailable.
+        '429':
+          description: Too Many Requests – Rate limit for the API has been exceeded.
+        '500':
+          description: Internal Server Error – An unexpected error occurred on the server.
+        '503':
+          description: Service Unavailable – The service is temporarily unavailable or down for maintenance.
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
