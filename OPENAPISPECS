@@ -1,0 +1,220 @@
+openapi: 3.0.3
+info:
+  title: Student Enrollment API
+  version: 1.0.0
+  description: |
+    This API registers or enrolls a student into the system. It is protected by an API key and should only be called when you have student-specific onboarding data such as student_id, student_identifier, student_gender, and agent_identifier.
+
+    **Usage Scenario:**
+    A front-end onboarding portal collects new student details and then invokes this endpoint to create the student record in the backend database.
+servers:
+  - url: https://api.example.com
+
+paths:
+  /api/student:
+    post:
+      summary: Register or enroll a student
+      description: |
+        Create or enroll a new student record. This API should only be used when a student is being onboarded into the system. Do NOT call this API for login or authentication.
+
+        **Usage Scenario Example:**
+        
+        ```json
+        POST /api/student
+        {
+          "student_id": "STU123",
+          "student_identifier": "ABC123",
+          "student_gender": "female",
+          "agent_identifier": "AGT001"
+        }
+
+        Response: 200 OK
+        {
+          "studentAddress": [],
+          "studentEnrollment": [],
+          "studentParentIncome": [],
+          "studentPeriod": [],
+          "studentLocation": [],
+          "studentStudyMonths": [],
+          "studentRequest": {},
+          "studentResponseCode": "200",
+          "studentProfile": {},
+          "data": {},
+          "httpResponse": {},
+          "httpRequest": {},
+          "status": "success"
+        }
+        ```
+      operationId: registerStudent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                student_id:
+                  type: string
+                student_identifier:
+                  type: string
+                student_gender:
+                  type: string
+                agent_identifier:
+                  type: string
+              required:
+                - student_id
+                - student_identifier
+                - student_gender
+                - agent_identifier
+            examples:
+              sampleEnrollment:
+                summary: Sample new student enrollment request
+                value:
+                  student_id: "STU123"
+                  student_identifier: "ABC123"
+                  student_gender: "female"
+                  agent_identifier: "AGT001"
+      responses:
+        '200':
+          description: Student enrolled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentResponse'
+              examples:
+                successEnrollment:
+                  summary: Successful enrollment response
+                  value:
+                    studentAddress: []
+                    studentEnrollment: []
+                    studentParentIncome: []
+                    studentPeriod: []
+                    studentLocation: []
+                    studentStudyMonths: []
+                    studentRequest: {}
+                    studentResponseCode: "200"
+                    studentProfile: {}
+                    data: {}
+                    httpResponse: {}
+                    httpRequest: {}
+                    status: "success"
+        '401':
+          description: Invalid API key
+          content:
+            application/json:
+              examples:
+                invalidKey:
+                  summary: Missing or invalid API key
+                  value:
+                    error: "Unauthorized"
+                    message: "Invalid API key provided."
+        '402':
+          description: Invalid request data (missing or incorrect)
+          content:
+            application/json:
+              examples:
+                invalidData:
+                  summary: Missing required field
+                  value:
+                    error: "BadRequest"
+                    message: "Required field 'student_id' is missing."
+        '404':
+          description: Not found
+          content:
+            application/json:
+              examples:
+                notFound:
+                  summary: Endpoint or resource not found
+                  value:
+                    error: "NotFound"
+                    message: "Requested resource was not found."
+        '424':
+          description: Logging service error
+          content:
+            application/json:
+              examples:
+                logError:
+                  summary: Downstream logging failure
+                  value:
+                    error: "FailedDependency"
+                    message: "Logging service is currently unavailable."
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              examples:
+                rateLimit:
+                  summary: Too many requests
+                  value:
+                    error: "TooManyRequests"
+                    message: "Rate limit exceeded. Please wait and retry."
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              examples:
+                serverError:
+                  summary: Unexpected server error
+                  value:
+                    error: "ServerError"
+                    message: "An unexpected error occurred."
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              examples:
+                serviceUnavailable:
+                  summary: Service down or maintenance
+                  value:
+                    error: "ServiceUnavailable"
+                    message: "Service is temporarily unavailable."
+      security:
+        - api_key: []
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    StudentResponse:
+      type: object
+      properties:
+        studentAddress:
+          type: array
+          items:
+            type: object
+        studentEnrollment:
+          type: array
+          items:
+            type: object
+        studentParentIncome:
+          type: array
+          items:
+            type: object
+        studentPeriod:
+          type: array
+          items:
+            type: object
+        studentLocation:
+          type: array
+          items:
+            type: object
+        studentStudyMonths:
+          type: array
+          items:
+            type: object
+        studentRequest:
+          type: object
+        studentResponseCode:
+          type: string
+        studentProfile:
+          type: object
+        data:
+          type: object
+        httpResponse:
+          type: object
+        httpRequest:
+          type: object
+        status:
+          type: string
