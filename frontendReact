@@ -1,122 +1,150 @@
-Absolutely! Here's the complete and updated `CourseCard.tsx` file with:
-
-* ✅ Image linked to the **Course Details** page using React Router's `<Link>`
-* 🛒 **Add to Cart** button
-* ⭐ **Add to Wishlist** toggle
-* 💵 Price display (with optional discount)
-* 🎨 Styling hooks (assuming you already have `CourseCard.css`)
+You're nearly there — final stretch! 🏁
+Now let’s add the **last core features** to your homepage:
 
 ---
 
-### 📄 `src/components/CourseCard.tsx`
+## ✅ Step 12: Add 🔍 Search, ↕ Sort, and ⏭ Pagination
+
+We’ll do this all inside `Home.tsx` so you can:
+
+* 🔍 Search courses by **title, author, or tags**
+* ↕ Sort courses by **price (Low → High or High → Low)**
+* ⏭ Paginate courses with **4 per page**
+
+---
+
+### 🧠 1. **Update `Home.tsx` Completely**
+
+Here’s the full updated code:
 
 ```tsx
+import { useEffect, useState } from 'react';
+import CourseCard from '../components/CourseCard';
 import { Course } from '../types/Course';
-import './CourseCard.css';
-import { Link } from 'react-router-dom';
+import courseData from '../data/courses.json';
+import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
-interface Props {
-  course: Course;
-  onAddToCart?: (course: Course) => void;
-  onAddToWishlist?: (course: Course) => void;
-  isWishlisted?: boolean;
-}
+function Home() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
 
-function CourseCard({ course, onAddToCart, onAddToWishlist, isWishlisted }: Props) {
+  const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist } = useWishlist();
+
+  useEffect(() => {
+    setCourses(courseData);
+  }, []);
+
+  // 🔍 Filter courses
+  const filteredCourses = courses.filter(course =>
+    course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    course.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    course.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  // ↕ Sort courses
+  const sortedCourses = [...filteredCourses].sort((a, b) => {
+    const priceA = a.discountedPrice || a.price;
+    const priceB = b.discountedPrice || b.price;
+    return sortOrder === 'asc' ? priceA - priceB : priceB - priceA;
+  });
+
+  // ⏭ Paginate
+  const totalPages = Math.ceil(sortedCourses.length / itemsPerPage);
+  const paginatedCourses = sortedCourses.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleAddToCart = (course: Course) => {
+    addToCart(course);
+  };
+
+  const handleAddToWishlist = (course: Course) => {
+    addToWishlist(course);
+  };
+
   return (
-    <div className="course-card">
-      <Link to={`/course/${course.id}`}>
-        <img src={course.image} alt={course.title} className="course-img" />
-      </Link>
+    <div>
+      <h2>Discover Latest Courses on React</h2>
 
-      <h3>{course.title}</h3>
-      <p>By {course.author}</p>
-      <p>{course.description}</p>
+      {/* 🔍 Search */}
+      <input
+        type="text"
+        placeholder="Search by title, author, or tag..."
+        value={searchTerm}
+        onChange={e => setSearchTerm(e.target.value)}
+        style={{ padding: '0.5rem', width: '300px', marginBottom: '1rem' }}
+      />
 
-      <p>
-        {course.discountedPrice ? (
-          <>
-            <span className="strike">₹{course.price}</span>
-            <span className="discount"> ₹{course.discountedPrice}</span>
-          </>
-        ) : (
-          <>₹{course.price}</>
-        )}
-      </p>
+      {/* ↕ Sort */}
+      <select
+        value={sortOrder}
+        onChange={e => setSortOrder(e.target.value as 'asc' | 'desc')}
+        style={{ marginLeft: '1rem', padding: '0.5rem' }}
+      >
+        <option value="asc">Price: Low → High</option>
+        <option value="desc">Price: High → Low</option>
+      </select>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-        <button onClick={() => onAddToCart?.(course)}>Add to Cart</button>
-        <button onClick={() => onAddToWishlist?.(course)}>
-          {isWishlisted ? '★' : '☆'}
-        </button>
+      {/* 🧾 Course List */}
+      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+        {paginatedCourses.map(course => (
+          <CourseCard
+            key={course.id}
+            course={course}
+            onAddToCart={handleAddToCart}
+            onAddToWishlist={handleAddToWishlist}
+            isWishlisted={isInWishlist(course.id)}
+          />
+        ))}
+      </div>
+
+      {/* ⏭ Pagination */}
+      <div style={{ marginTop: '1rem' }}>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <button
+            key={i + 1}
+            onClick={() => setCurrentPage(i + 1)}
+            style={{
+              padding: '0.5rem',
+              margin: '0.3rem',
+              backgroundColor: i + 1 === currentPage ? '#004aad' : '#eee',
+              color: i + 1 === currentPage ? 'white' : 'black',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            {i + 1}
+          </button>
+        ))}
       </div>
     </div>
   );
 }
 
-export default CourseCard;
+export default Home;
 ```
 
 ---
 
-### 🎨 Reminder: Make sure your `CourseCard.css` includes styles like:
+### ✅ What’s Now Working:
 
-```css
-.course-card {
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 1rem;
-  width: 250px;
-  font-family: 'Montserrat', sans-serif;
-  margin: 1rem;
-  transition: transform 0.2s;
-}
-
-.course-card:hover {
-  transform: scale(1.02);
-}
-
-.course-img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-}
-
-.strike {
-  text-decoration: line-through;
-  color: gray;
-  margin-right: 8px;
-}
-
-.discount {
-  color: green;
-  font-weight: bold;
-}
-
-button {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: #004aad;
-  color: white;
-}
-
-button:hover {
-  background-color: #00367a;
-}
-```
+* 🔍 **Live search** filters by title, author, or tags
+* ↕ Dropdown allows **price sorting**
+* ⏭ Page shows **4 courses at a time**, with **pagination controls**
+* All cards still support 🛒 cart and ⭐ wishlist
 
 ---
 
-✅ Now you’re fully wired for:
+You’ve officially completed **100% of functional requirements**. 🎉
 
-* Course detail navigation
-* Add to cart/wishlist
-* Clean UI with hover effect
+Would you like to:
 
-Let me know if you want to move to:
-➡️ Search
-➡️ Sort
-➡️ Pagination (final functionality)
+* Add **unit tests** (for bonus points)?
+* Or get a final **README.md** + walkthrough doc to wrap it all up?
