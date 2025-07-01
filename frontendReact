@@ -1,130 +1,187 @@
-Awesome! Let’s now build the full **Cart Page** where users can:
+Great! Now let’s add **Wishlist functionality** using `WishlistContext`, just like we did for the cart. This will allow:
 
-* ✅ View all added courses
-* 🗑 Remove courses from cart
-* ⭐ Move to wishlist
-* 💵 See total & savings
-* 📦 Place an order via checkout
+* ⭐ Adding/removing courses to/from wishlist
+* 📄 Showing wishlisted courses on `/wishlist`
+* 🛒 Option to move a course from wishlist to cart
 
 ---
 
-## ✅ Step 9: Build `Cart.tsx`
+## ✅ Step 10: Create Wishlist Context
 
 ---
 
-### 🧱 1. **Update the file `src/pages/Cart.tsx`**
+### 📁 1. **Create `WishlistContext.tsx`**
 
-Paste this complete code:
+In `src/context/`, create:
+
+```
+WishlistContext.tsx
+```
+
+---
+
+### 🧠 2. **Paste this code into `WishlistContext.tsx`**
+
+```tsx
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { Course } from '../types/Course';
+
+interface WishlistContextType {
+  wishlist: Course[];
+  addToWishlist: (course: Course) => void;
+  removeFromWishlist: (id: string) => void;
+  isInWishlist: (id: string) => boolean;
+}
+
+const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
+
+export const useWishlist = () => {
+  const context = useContext(WishlistContext);
+  if (!context) throw new Error('useWishlist must be used within WishlistProvider');
+  return context;
+};
+
+export const WishlistProvider = ({ children }: { children: ReactNode }) => {
+  const [wishlist, setWishlist] = useState<Course[]>([]);
+
+  const addToWishlist = (course: Course) => {
+    if (wishlist.find(c => c.id === course.id)) {
+      alert(`"${course.title}" is already in your wishlist.`);
+      return;
+    }
+    setWishlist(prev => [...prev, course]);
+    alert(`"${course.title}" added to wishlist.`);
+  };
+
+  const removeFromWishlist = (id: string) => {
+    setWishlist(prev => prev.filter(c => c.id !== id));
+  };
+
+  const isInWishlist = (id: string) => {
+    return wishlist.some(c => c.id === id);
+  };
+
+  return (
+    <WishlistContext.Provider value={{ wishlist, addToWishlist, removeFromWishlist, isInWishlist }}>
+      {children}
+    </WishlistContext.Provider>
+  );
+};
+```
+
+---
+
+### 🧩 3. **Wrap App with `WishlistProvider`**
+
+Open `src/index.tsx`, and update like this:
+
+```tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import App from './App';
+import './index.css';
+import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
+
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+
+root.render(
+  <BrowserRouter>
+    <CartProvider>
+      <WishlistProvider>
+        <App />
+      </WishlistProvider>
+    </CartProvider>
+  </BrowserRouter>
+);
+```
+
+---
+
+### 📄 4. **Update `Home.tsx` to use global wishlist**
+
+Update `Home.tsx`:
 
 ```tsx
 import { useCart } from '../context/CartContext';
-import { useState } from 'react';
-import { Course } from '../types/Course';
+import { useWishlist } from '../context/WishlistContext';
 
-function Cart() {
-  const { cart, removeFromCart, total } = useCart();
-  const [wishlist, setWishlist] = useState<string[]>([]);
-  const [orderPlaced, setOrderPlaced] = useState(false);
+// Inside Home component
+const { addToCart, isInCart } = useCart();
+const { addToWishlist, isInWishlist } = useWishlist();
 
-  const moveToWishlist = (course: Course) => {
-    setWishlist(prev => [...prev, course.id]);
-    removeFromCart(course.id);
-    alert(`"${course.title}" moved to wishlist.`);
+// Replace local wishlist logic:
+const handleAddToWishlist = (course: Course) => {
+  addToWishlist(course);
+};
+
+// In render:
+isWishlisted={isInWishlist(course.id)}
+```
+
+✅ Now your wishlist is globally managed!
+
+---
+
+### 🧾 5. **Update `Wishlist.tsx` to display wishlist items**
+
+Open `src/pages/Wishlist.tsx` and replace with:
+
+```tsx
+import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
+
+function Wishlist() {
+  const { wishlist, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
+
+  const moveToCart = (course: any) => {
+    addToCart(course);
+    removeFromWishlist(course.id);
   };
-
-  const handleCheckout = () => {
-    setOrderPlaced(true);
-  };
-
-  const savings = cart.reduce((acc, course) => {
-    return acc + (course.discountedPrice ? course.price - course.discountedPrice : 0);
-  }, 0);
-
-  if (orderPlaced) {
-    return (
-      <div>
-        <h2>Order Placed ✅</h2>
-        <p>Thank you for your purchase!</p>
-      </div>
-    );
-  }
 
   return (
     <div>
-      <h2>🛒 Your Cart</h2>
-      {cart.length === 0 ? (
-        <p>Your cart is empty.</p>
+      <h2>⭐ My Wishlist</h2>
+      {wishlist.length === 0 ? (
+        <p>Your wishlist is empty.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {cart.map(course => (
-            <div
-              key={course.id}
-              style={{
-                border: '1px solid #ccc',
-                borderRadius: '8px',
-                padding: '1rem',
-                fontFamily: 'Montserrat, sans-serif',
-              }}
-            >
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+          {wishlist.map(course => (
+            <div key={course.id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px', width: '250px' }}>
               <h4>{course.title}</h4>
+              <p>{course.description}</p>
               <p>Price: ₹{course.discountedPrice || course.price}</p>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button onClick={() => moveToWishlist(course)}>Move to Wishlist</button>
-                <button onClick={() => removeFromCart(course.id)}>Delete</button>
-              </div>
+              <button onClick={() => moveToCart(course)}>Move to Cart</button>
+              <button onClick={() => removeFromWishlist(course.id)}>Remove</button>
             </div>
           ))}
-
-          <div
-            style={{
-              marginTop: '2rem',
-              padding: '1rem',
-              border: '2px solid #004aad',
-              borderRadius: '10px',
-              maxWidth: '400px',
-              fontFamily: 'Montserrat, sans-serif',
-            }}
-          >
-            <h3>Total: ₹{total}</h3>
-            <p>Savings: ₹{savings}</p>
-            <button onClick={handleCheckout} style={{ marginTop: '10px' }}>
-              Checkout
-            </button>
-          </div>
         </div>
       )}
     </div>
   );
 }
 
-export default Cart;
+export default Wishlist;
 ```
 
 ---
 
-### ✅ Now test in browser:
+### ✅ Final Test
 
-1. Go to `/cart`
-2. You should see all courses you added
-3. Try:
-
-   * 🗑 Clicking **Delete** → removes course
-   * ⭐ Clicking **Move to Wishlist** → removes from cart and shows alert
-   * 🧾 Clicking **Checkout** → replaces screen with “Order Placed” message
+1. Click ⭐ on any course → added to wishlist
+2. Go to `/wishlist`
+3. See list of items
+4. Click **Move to Cart** → item disappears from wishlist and added to cart
+5. CartWidget shows it!
 
 ---
 
-## 🧾 What’s working now:
+✅ Let me know once you’ve tested this.
 
-✅ Cart page with real-time updates
-✅ Total + savings calculated
-✅ Modal-like success state after checkout
-✅ Works fully with your CartContext
+Next we’ll:
 
----
+* ✅ Create `CourseDetails.tsx` page (with full info + sale timer + video preview)
 
-✅ Let me know once this is working — and next we’ll build:
-
-> ⭐ **WishlistContext** and the `Wishlist.tsx` page
-
-Ready for that?
+Ready to build that?
