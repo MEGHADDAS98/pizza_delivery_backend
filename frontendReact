@@ -1,136 +1,188 @@
-Perfect! Now let’s add a **Navbar** so users can navigate between pages like Home, Cart, Wishlist, Profile, etc.
+Perfect! Now let's move to:
 
 ---
 
-## ✅ Step 4: Add Navbar Component
+## ✅ Step 5: Create `courses.json` & Display Courses on Home Page
 
-### 🗂 Create the file:
+You’ll:
 
-In `src/components/`, create a file named:
+* Add **mock course data**
+* Create a **CourseCard** component
+* Render the list on the **Home page**
+
+---
+
+### 📁 1. **Create a new folder** inside `src/` called:
 
 ```
-Navbar.tsx
+data
+```
+
+Inside `src/data/`, create a file:
+
+```
+courses.json
 ```
 
 ---
 
-### 🧱 Paste the following code into `Navbar.tsx`:
+### 🧾 2. **Paste this sample JSON into `courses.json`:**
+
+```json
+[
+  {
+    "id": "1",
+    "title": "Complete React Developer Course",
+    "author": "Andrew Mead",
+    "tags": ["react", "frontend", "developer"],
+    "description": "Learn to build responsive React apps.",
+    "price": 999,
+    "discountedPrice": 499,
+    "image": "https://via.placeholder.com/150",
+    "isOnSale": true,
+    "saleEndsAt": "2025-07-01T23:59:59Z"
+  },
+  {
+    "id": "2",
+    "title": "Mastering HTML & CSS",
+    "author": "Angela Yu",
+    "tags": ["html", "css", "web"],
+    "description": "Build websites using HTML5 and CSS3.",
+    "price": 799,
+    "image": "https://via.placeholder.com/150"
+  }
+]
+```
+
+---
+
+### 🧱 3. **Create CourseCard Component**
+
+📁 Inside `src/components/`, create:
+
+```
+CourseCard.tsx
+```
+
+Paste this code:
 
 ```tsx
-import { Link, NavLink } from 'react-router-dom';
-import './Navbar.css';
+import { Course } from '../types/Course';
+import './CourseCard.css';
 
-function Navbar() {
+interface Props {
+  course: Course;
+}
+
+function CourseCard({ course }: Props) {
   return (
-    <nav className="navbar">
-      <div className="nav-left">
-        <Link to="/" className="logo">
-          #Hashdin by Deloitte
-        </Link>
-      </div>
-      <div className="nav-right">
-        <NavLink to="/" className="nav-link">Courses</NavLink>
-        <NavLink to="/wishlist" className="nav-link">My Wishlist</NavLink>
-        <NavLink to="/cart" className="nav-link">Cart</NavLink>
-        <NavLink to="/profile" className="nav-link">My Profile</NavLink>
-      </div>
-    </nav>
+    <div className="course-card">
+      <img src={course.image} alt={course.title} />
+      <h3>{course.title}</h3>
+      <p>By {course.author}</p>
+      <p>{course.description}</p>
+      <p>
+        {course.discountedPrice ? (
+          <>
+            <span className="strike">₹{course.price}</span>
+            <span className="discount"> ₹{course.discountedPrice}</span>
+          </>
+        ) : (
+          <>₹{course.price}</>
+        )}
+      </p>
+    </div>
   );
 }
 
-export default Navbar;
+export default CourseCard;
 ```
 
 ---
 
-### 🎨 Create Styling File
+### 🎨 Create `CourseCard.css` for basic style
 
-In the same `components` folder, create:
-
-```
-Navbar.css
-```
-
-And paste this styling to make it simple but nice:
+📁 Create `CourseCard.css` in the same folder and paste:
 
 ```css
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #222;
-  padding: 1rem 2rem;
+.course-card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 1rem;
+  width: 250px;
   font-family: 'Montserrat', sans-serif;
+  margin: 1rem;
 }
 
-.logo {
-  color: #fff;
+.course-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.strike {
+  text-decoration: line-through;
+  color: gray;
+  margin-right: 8px;
+}
+
+.discount {
+  color: green;
   font-weight: bold;
-  text-decoration: none;
-  font-size: 1.2rem;
-}
-
-.nav-link {
-  color: #ccc;
-  text-decoration: none;
-  margin-left: 1.5rem;
-  font-size: 1rem;
-}
-
-.nav-link:hover,
-.nav-link.active {
-  color: #f9d342;
 }
 ```
 
 ---
 
-### 🔗 Add Navbar to Your `App.tsx`
+### 📄 4. **Update `Home.tsx` to display courses**
 
-Update `App.tsx` to include `Navbar`:
+Open `src/pages/Home.tsx` and replace it with:
 
 ```tsx
-import { Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Cart from './pages/Cart';
-import Wishlist from './pages/Wishlist';
-import Profile from './pages/Profile';
-import CourseDetails from './pages/CourseDetails';
-import Navbar from './components/Navbar';
+import { useEffect, useState } from 'react';
+import CourseCard from '../components/CourseCard';
+import { Course } from '../types/Course';
+import courseData from '../data/courses.json';
 
-function App() {
+function Home() {
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    setCourses(courseData);
+  }, []);
+
   return (
-    <>
-      <Navbar />
-      <div style={{ padding: '20px' }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/course/:id" element={<CourseDetails />} />
-        </Routes>
+    <div>
+      <h2>Discover Latest Courses on React</h2>
+      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+        {courses.map(course => (
+          <CourseCard key={course.id} course={course} />
+        ))}
       </div>
-    </>
+    </div>
   );
 }
 
-export default App;
+export default Home;
 ```
 
 ---
 
-### ✅ Test It
+### ✅ Now Test It:
 
-* Your app should now show a **dark navbar** at the top
-* Links should highlight on click
-* Routing should work between pages
+1. Run your app (or it’ll auto-refresh):
+
+   ```
+   npm start
+   ```
+2. Go to `http://localhost:3000`
+3. You should see 2 nice course cards rendered 🎉
 
 ---
 
-Let me know once you're done, and next we’ll:
-➡️ Set up mock `courses.json` data
-➡️ Render the course cards on the Home page
-➡️ Then start building cart/wishlist logic
+Let me know once you're done and seeing the courses — and next we’ll:
 
-Shall we move ahead to that?
+* Add buttons: ⭐ Add to Wishlist, 🛒 Add to Cart
+* Start building Wishlist and Cart logic using Context API
+
+Ready for that?
