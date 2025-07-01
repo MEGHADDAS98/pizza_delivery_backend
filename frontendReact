@@ -1,45 +1,169 @@
-import { useEffect, useState } from 'react';
-import CourseCard from '../components/CourseCard';
-import { Course } from '../types/Course';
-import courseData from '../data/courses.json';
+Awesome! Let’s now create the **Cart Widget**, a sticky sidebar that:
+
+* Displays all courses added to cart
+* Shows the total price
+* Has a **"Go to Checkout"** button
+
+---
+
+## ✅ Step 8: Create `CartWidget.tsx`
+
+---
+
+### 📁 1. **Create the file**
+
+In `src/components/`, create:
+
+```
+CartWidget.tsx
+```
+
+---
+
+### 🧱 2. **Paste this code into `CartWidget.tsx`**
+
+```tsx
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
+import './CartWidget.css';
 
-function Home() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [wishlist, setWishlist] = useState<string[]>([]);
-
-  const { addToCart, isInCart } = useCart();
-
-  useEffect(() => {
-    setCourses(courseData);
-  }, []);
-
-  const handleAddToCart = (course: Course) => {
-    addToCart(course);
-  };
-
-  const handleAddToWishlist = (course: Course) => {
-    if (wishlist.includes(course.id)) return;
-    setWishlist(prev => [...prev, course.id]);
-    alert(`"${course.title}" added to wishlist.`);
-  };
+function CartWidget() {
+  const { cart, total } = useCart();
+  const navigate = useNavigate();
 
   return (
-    <div>
-      <h2>Discover Latest Courses on React</h2>
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {courses.map(course => (
-          <CourseCard
-            key={course.id}
-            course={course}
-            onAddToCart={handleAddToCart}
-            onAddToWishlist={handleAddToWishlist}
-            isWishlisted={wishlist.includes(course.id)}
-          />
-        ))}
-      </div>
+    <div className="cart-widget">
+      <h3>🛒 Cart</h3>
+      {cart.length === 0 ? (
+        <p>No items</p>
+      ) : (
+        <ul>
+          {cart.map(course => (
+            <li key={course.id}>{course.title}</li>
+          ))}
+        </ul>
+      )}
+      <p>Total: ₹{total}</p>
+      <button onClick={() => navigate('/cart')}>Go to Checkout</button>
     </div>
   );
 }
 
-export default Home;
+export default CartWidget;
+```
+
+---
+
+### 🎨 3. **Create `CartWidget.css`**
+
+In the same folder (`components`), create:
+
+```
+CartWidget.css
+```
+
+Paste this CSS:
+
+```css
+.cart-widget {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  width: 220px;
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Montserrat', sans-serif;
+  z-index: 1000;
+}
+
+.cart-widget h3 {
+  margin-top: 0;
+}
+
+.cart-widget ul {
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.9rem;
+}
+
+.cart-widget li {
+  margin-bottom: 5px;
+}
+
+.cart-widget button {
+  margin-top: 10px;
+  padding: 0.5rem 1rem;
+  background-color: #004aad;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cart-widget button:hover {
+  background-color: #00367a;
+}
+```
+
+---
+
+### 🔗 4. **Add `CartWidget` to App Layout**
+
+Open `App.tsx` and update it to:
+
+```tsx
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import Cart from './pages/Cart';
+import Wishlist from './pages/Wishlist';
+import Profile from './pages/Profile';
+import CourseDetails from './pages/CourseDetails';
+import Navbar from './components/Navbar';
+import CartWidget from './components/CartWidget';
+
+function App() {
+  return (
+    <>
+      <Navbar />
+      <div style={{ padding: '20px' }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/course/:id" element={<CourseDetails />} />
+        </Routes>
+      </div>
+      <CartWidget />
+    </>
+  );
+}
+
+export default App;
+```
+
+---
+
+### ✅ Now test:
+
+* Add a course to cart
+* 👉 Cart widget on the right shows updated list
+* ✅ Total amount updates instantly
+* ✅ Click “Go to Checkout” → navigates to `/cart`
+
+---
+
+✅ Let me know once this works!
+
+Next we’ll:
+
+* Build the **Cart Page** (`Cart.tsx`) to allow:
+
+  * Remove from cart
+  * Move to wishlist
+  * Show total and savings
+  * Place order modal
+
+Ready for that?
