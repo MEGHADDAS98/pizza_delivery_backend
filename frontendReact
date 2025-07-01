@@ -1,44 +1,140 @@
-import { useEffect, useState } from 'react';
-import CourseCard from '../components/CourseCard';
-import { Course } from '../types/Course';
+Great! Let’s now build the **📘 Course Details Page** with:
+
+* 🔗 Breadcrumb: "All Courses > \[Course Title]"
+* 🎥 Video thumbnail (on click: mock player or alert)
+* 💵 Price with optional discount + time left
+* 🛒 Add to Cart / ⭐ Add to Wishlist buttons
+* 🧾 Handles sale timer for offers expiring in <24 hours
+
+---
+
+## ✅ Step 11: Build `CourseDetails.tsx`
+
+---
+
+### 📄 1. **Update `src/pages/CourseDetails.tsx`**
+
+Paste this full code:
+
+```tsx
+import { useParams } from 'react-router-dom';
 import courseData from '../data/courses.json';
+import { Course } from '../types/Course';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 
-function Home() {
-  const [courses, setCourses] = useState<Course[]>([]);
+function CourseDetails() {
+  const { id } = useParams<{ id: string }>();
+  const course = (courseData as Course[]).find(c => c.id === id);
 
-  const { addToCart, isInCart } = useCart();
+  const { addToCart } = useCart();
   const { addToWishlist, isInWishlist } = useWishlist();
 
-  useEffect(() => {
-    setCourses(courseData);
-  }, []);
+  if (!course) return <p>Course not found.</p>;
 
-  const handleAddToCart = (course: Course) => {
-    addToCart(course);
-  };
+  const priceDisplay = course.discountedPrice ? (
+    <>
+      <span style={{ textDecoration: 'line-through', color: 'gray', marginRight: '8px' }}>
+        ₹{course.price}
+      </span>
+      <span style={{ color: 'green', fontWeight: 'bold' }}>
+        ₹{course.discountedPrice}
+      </span>
+    </>
+  ) : (
+    <>₹{course.price}</>
+  );
 
-  const handleAddToWishlist = (course: Course) => {
-    addToWishlist(course);
+  const hoursLeft = course.saleEndsAt
+    ? Math.floor(
+        (new Date(course.saleEndsAt).getTime() - new Date().getTime()) / (1000 * 60 * 60)
+      )
+    : null;
+
+  const showTimer = hoursLeft !== null && hoursLeft < 24 && hoursLeft >= 0;
+
+  const handleVideoClick = () => {
+    alert('Playing course video (mock)');
   };
 
   return (
-    <div>
-      <h2>Discover Latest Courses on React</h2>
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {courses.map(course => (
-          <CourseCard
-            key={course.id}
-            course={course}
-            onAddToCart={handleAddToCart}
-            onAddToWishlist={handleAddToWishlist}
-            isWishlisted={isInWishlist(course.id)}
-          />
-        ))}
+    <div style={{ fontFamily: 'Montserrat, sans-serif', padding: '1rem' }}>
+      {/* 🔗 Breadcrumb */}
+      <p>
+        <a href="/" style={{ textDecoration: 'none', color: '#004aad' }}>All Courses</a> &gt;{' '}
+        <strong>{course.title}</strong>
+      </p>
+
+      {/* 📘 Course Header */}
+      <h2>{course.title}</h2>
+      <p><strong>Author:</strong> {course.author}</p>
+      <p>{course.description}</p>
+
+      {/* 🎥 Video card */}
+      <div style={{ margin: '1rem 0' }}>
+        <img
+          src={course.image}
+          alt={course.title}
+          style={{ width: '100%', maxWidth: '400px', cursor: 'pointer' }}
+          onClick={handleVideoClick}
+        />
+      </div>
+
+      {/* 💵 Price */}
+      <p>Price: {priceDisplay}</p>
+
+      {showTimer && (
+        <p style={{ color: 'red' }}>
+          ⚡ Sale ends in {hoursLeft} hour{hoursLeft !== 1 ? 's' : ''}
+        </p>
+      )}
+
+      {/* 🛒 Buttons */}
+      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+        <button onClick={() => addToCart(course)}>Add to Cart</button>
+        <button onClick={() => addToWishlist(course)}>
+          {isInWishlist(course.id) ? '★ Wishlisted' : '☆ Add to Wishlist'}
+        </button>
       </div>
     </div>
   );
 }
 
-export default Home;
+export default CourseDetails;
+```
+
+---
+
+### 🧪 Now test it
+
+1. From home page, pick a course and update your CourseCard to link to details page:
+
+   ```tsx
+   import { Link } from 'react-router-dom';
+
+   // inside CourseCard return block:
+   <Link to={`/course/${course.id}`}>
+     <img src={course.image} alt={course.title} />
+   </Link>
+   ```
+2. Click a course → navigates to `CourseDetails`
+3. You should see:
+
+   * Breadcrumb
+   * Full course info
+   * Price (with discount if applicable)
+   * Optional sale timer if within 24 hrs
+   * Add to Cart + Wishlist buttons
+   * Video image (shows mock alert on click)
+
+---
+
+✅ Let me know once this is working!
+
+Next we’ll:
+
+* Add **🔍 Search**
+* Add **↕ Sort by Price**
+* Add **⏭ Pagination**
+
+You’re now at **\~95% completion**. Want to finish those next?
