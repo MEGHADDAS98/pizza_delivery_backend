@@ -1,0 +1,152 @@
+Perfect! Since this is a frontend-only project, we’ll simulate the backend using mock JSON data, localStorage, and React state.
+
+⸻
+
+✅ STEP 1: Setup Project Environment
+
+Let’s start by initializing your project correctly.
+
+1. Create React App with TypeScript
+
+npx create-react-app hashdin-university --template typescript
+cd hashdin-university
+
+2. Install Required Dev Tools
+
+npm install --save react-router-dom
+npm install --save-dev eslint prettier eslint-config-prettier eslint-plugin-react eslint-plugin-react-hooks
+
+3. Set up ESLint and Prettier
+	•	Create .eslintrc.json:
+
+{
+  "extends": ["react-app", "plugin:react/recommended", "plugin:react-hooks/recommended", "prettier"],
+  "plugins": ["react", "react-hooks"],
+  "rules": {
+    "react/react-in-jsx-scope": "off"
+  }
+}
+
+	•	Create .prettierrc:
+
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 80
+}
+
+
+⸻
+
+✅ STEP 2: Project Structure
+
+Create this folder structure:
+
+src/
+├── assets/              # icons, images, fonts
+├── components/          # reusable components (Navbar, CourseCard)
+├── data/                # mock JSON data
+├── hooks/               # custom hooks
+├── pages/               # Dashboard, Cart, Wishlist, Profile, CourseDetail
+├── styles/              # global.css, theme.css
+├── utils/               # helper functions
+├── types/               # TS interfaces
+├── App.tsx
+└── index.tsx
+
+
+⸻
+
+✅ STEP 3: Load Montserrat Font
+
+In public/index.html:
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap"
+  rel="stylesheet"
+/>
+
+In src/index.css:
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+
+⸻
+
+✅ STEP 4: Routing Setup
+
+In src/App.tsx:
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import CartPage from './pages/CartPage';
+import WishlistPage from './pages/WishlistPage';
+import ProfilePage from './pages/ProfilePage';
+import CourseDetail from './pages/CourseDetail';
+import Navbar from './components/Navbar';
+
+function App() {
+  return (
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/course/:id" element={<CourseDetail />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+
+
+⸻
+
+✅ STEP 5: Mock Course Data (example)
+
+In src/data/courses.json:
+
+[
+  {
+    "id": "course-1",
+    "title": "Complete React Developer Course",
+    "author": "John Doe",
+    "tags": ["react", "frontend"],
+    "description": "Learn React from scratch",
+    "thumbnail": "/assets/react-course.jpg",
+    "price": 2000,
+    "discountedPrice": 1500,
+    "isOnSale": true
+  },
+  {
+    "id": "course-2",
+    "title": "HTML5 and CSS Masterclass",
+    "author": "Jane Smith",
+    "tags": ["html", "css", "frontend"],
+    "description": "Master responsive design",
+    "thumbnail": "/assets/html-css.jpg",
+    "price": 1000,
+    "isOnSale": false
+  }
+]
+
+
+⸻
+
+✅ You are now ready to start building the Dashboard page where:
+	•	All courses will be listed (with pagination)
+	•	You can add to cart/wishlist
+	•	Popups and messages will show
+
+⸻
+
+➡️ Shall we start with building the Dashboard page and CourseCard component next?
+
+Let me know and I’ll guide you step-by-step for that part.
