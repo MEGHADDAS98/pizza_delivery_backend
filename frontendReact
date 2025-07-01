@@ -1,143 +1,45 @@
-Perfect! Now let’s create a **CartContext** to manage the cart globally across your app. This way, you can:
-
-* Add courses to cart from any page
-* Access cart in the widget, cart page, etc.
-* Keep total price updated
-
----
-
-## ✅ Step 7: Create Cart Context
-
----
-
-### 📁 1. **Create `context/` folder**
-
-Inside `src/`, create:
-
-```
-context/CartContext.tsx
-```
-
----
-
-### 🧠 2. **Paste this code into `CartContext.tsx`**
-
-```tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useEffect, useState } from 'react';
+import CourseCard from '../components/CourseCard';
 import { Course } from '../types/Course';
-
-interface CartContextType {
-  cart: Course[];
-  addToCart: (course: Course) => void;
-  removeFromCart: (id: string) => void;
-  isInCart: (id: string) => boolean;
-  total: number;
-}
-
-const CartContext = createContext<CartContextType | undefined>(undefined);
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) throw new Error('useCart must be used within CartProvider');
-  return context;
-};
-
-export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<Course[]>([]);
-
-  const addToCart = (course: Course) => {
-    if (cart.find(c => c.id === course.id)) {
-      alert(`"${course.title}" already exists in the cart.`);
-      return;
-    }
-    setCart(prev => [...prev, course]);
-    alert(`"${course.title}" added to cart.`);
-  };
-
-  const removeFromCart = (id: string) => {
-    setCart(prev => prev.filter(c => c.id !== id));
-  };
-
-  const isInCart = (id: string) => {
-    return cart.some(c => c.id === id);
-  };
-
-  const total = cart.reduce((acc, course) => {
-    return acc + (course.discountedPrice || course.price);
-  }, 0);
-
-  return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, isInCart, total }}>
-      {children}
-    </CartContext.Provider>
-  );
-};
-```
-
----
-
-### 🧩 3. **Wrap App with `CartProvider`**
-
-Open `src/index.tsx`, update like this:
-
-```tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
-import './index.css';
-import { CartProvider } from './context/CartContext';
-
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-
-root.render(
-  <BrowserRouter>
-    <CartProvider>
-      <App />
-    </CartProvider>
-  </BrowserRouter>
-);
-```
-
----
-
-### 🔁 4. **Update `Home.tsx` to use the cart**
-
-Open `Home.tsx`, update this part:
-
-```tsx
+import courseData from '../data/courses.json';
 import { useCart } from '../context/CartContext';
 
-// Inside Home component
-const { addToCart, isInCart } = useCart();
+function Home() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
 
-// Replace handleAddToCart with:
-const handleAddToCart = (course: Course) => {
-  addToCart(course);
-};
-```
+  const { addToCart, isInCart } = useCart();
 
-And remove this line (you don’t need the local cart state anymore):
+  useEffect(() => {
+    setCourses(courseData);
+  }, []);
 
-```tsx
-// const [cart, setCart] = useState<Course[]>([]);
-```
+  const handleAddToCart = (course: Course) => {
+    addToCart(course);
+  };
 
----
+  const handleAddToWishlist = (course: Course) => {
+    if (wishlist.includes(course.id)) return;
+    setWishlist(prev => [...prev, course.id]);
+    alert(`"${course.title}" added to wishlist.`);
+  };
 
-✅ Now test:
+  return (
+    <div>
+      <h2>Discover Latest Courses on React</h2>
+      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+        {courses.map(course => (
+          <CourseCard
+            key={course.id}
+            course={course}
+            onAddToCart={handleAddToCart}
+            onAddToWishlist={handleAddToWishlist}
+            isWishlisted={wishlist.includes(course.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-* Click **Add to Cart**
-* You’ll see an `alert` popup with success or duplicate message
-* Cart is now stored globally across your app
-
----
-
-### 📦 Next Up:
-
-We’ll:
-
-* Create `CartWidget` component (sticky sidebar)
-* Show real-time list of cart items + total + checkout link
-
-Shall we build the `CartWidget.tsx` next?
+export default Home;
