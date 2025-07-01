@@ -1,44 +1,136 @@
-Yes, exactly! ✅
+Perfect! Now let’s add a **Navbar** so users can navigate between pages like Home, Cart, Wishlist, Profile, etc.
 
-Just like you created a `pages` folder, you also create a:
+---
+
+## ✅ Step 4: Add Navbar Component
+
+### 🗂 Create the file:
+
+In `src/components/`, create a file named:
 
 ```
-src/components/
+Navbar.tsx
 ```
 
 ---
 
-### 🗂 Folder Purpose Recap:
+### 🧱 Paste the following code into `Navbar.tsx`:
 
-| Folder Name   | Purpose                                                                               |
-| ------------- | ------------------------------------------------------------------------------------- |
-| `pages/`      | Contains full **screens** or **pages** like `Home.tsx`, `Cart.tsx`                    |
-| `components/` | Contains **reusable UI blocks** like `Navbar.tsx`, `CourseCard.tsx`, `CartWidget.tsx` |
+```tsx
+import { Link, NavLink } from 'react-router-dom';
+import './Navbar.css';
 
----
+function Navbar() {
+  return (
+    <nav className="navbar">
+      <div className="nav-left">
+        <Link to="/" className="logo">
+          #Hashdin by Deloitte
+        </Link>
+      </div>
+      <div className="nav-right">
+        <NavLink to="/" className="nav-link">Courses</NavLink>
+        <NavLink to="/wishlist" className="nav-link">My Wishlist</NavLink>
+        <NavLink to="/cart" className="nav-link">Cart</NavLink>
+        <NavLink to="/profile" className="nav-link">My Profile</NavLink>
+      </div>
+    </nav>
+  );
+}
 
-### ✅ What to do:
-
-1. Right-click on the `src` folder in VS Code
-2. Click **"New Folder"**
-3. Name it:
-
-   ```
-   components
-   ```
-4. Inside that `components` folder, create the file:
-
-   ```
-   Navbar.tsx
-   ```
-5. Also create:
-
-   ```
-   Navbar.css
-   ```
+export default Navbar;
+```
 
 ---
 
-Once you've done that and pasted the code from the previous step, your navbar should appear.
+### 🎨 Create Styling File
 
-Let me know once it’s showing — next we’ll add mock course data and display it on the homepage 🔥
+In the same `components` folder, create:
+
+```
+Navbar.css
+```
+
+And paste this styling to make it simple but nice:
+
+```css
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #222;
+  padding: 1rem 2rem;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.logo {
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  font-size: 1.2rem;
+}
+
+.nav-link {
+  color: #ccc;
+  text-decoration: none;
+  margin-left: 1.5rem;
+  font-size: 1rem;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: #f9d342;
+}
+```
+
+---
+
+### 🔗 Add Navbar to Your `App.tsx`
+
+Update `App.tsx` to include `Navbar`:
+
+```tsx
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import Cart from './pages/Cart';
+import Wishlist from './pages/Wishlist';
+import Profile from './pages/Profile';
+import CourseDetails from './pages/CourseDetails';
+import Navbar from './components/Navbar';
+
+function App() {
+  return (
+    <>
+      <Navbar />
+      <div style={{ padding: '20px' }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/course/:id" element={<CourseDetails />} />
+        </Routes>
+      </div>
+    </>
+  );
+}
+
+export default App;
+```
+
+---
+
+### ✅ Test It
+
+* Your app should now show a **dark navbar** at the top
+* Links should highlight on click
+* Routing should work between pages
+
+---
+
+Let me know once you're done, and next we’ll:
+➡️ Set up mock `courses.json` data
+➡️ Render the course cards on the Home page
+➡️ Then start building cart/wishlist logic
+
+Shall we move ahead to that?
