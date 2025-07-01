@@ -1,70 +1,18 @@
-Perfect! Now let's move to:
+Awesome! Now let’s make your course cards **interactive** by:
 
 ---
 
-## ✅ Step 5: Create `courses.json` & Display Courses on Home Page
+## ✅ Step 6: Add **Add to Cart** and **Add to Wishlist** Buttons
 
-You’ll:
-
-* Add **mock course data**
-* Create a **CourseCard** component
-* Render the list on the **Home page**
+We’ll also prepare to connect this to a shared cart/wishlist state next.
 
 ---
 
-### 📁 1. **Create a new folder** inside `src/` called:
+### 🧱 1. **Update `CourseCard.tsx`**
 
-```
-data
-```
+We’ll add two buttons and props to handle adding to cart/wishlist.
 
-Inside `src/data/`, create a file:
-
-```
-courses.json
-```
-
----
-
-### 🧾 2. **Paste this sample JSON into `courses.json`:**
-
-```json
-[
-  {
-    "id": "1",
-    "title": "Complete React Developer Course",
-    "author": "Andrew Mead",
-    "tags": ["react", "frontend", "developer"],
-    "description": "Learn to build responsive React apps.",
-    "price": 999,
-    "discountedPrice": 499,
-    "image": "https://via.placeholder.com/150",
-    "isOnSale": true,
-    "saleEndsAt": "2025-07-01T23:59:59Z"
-  },
-  {
-    "id": "2",
-    "title": "Mastering HTML & CSS",
-    "author": "Angela Yu",
-    "tags": ["html", "css", "web"],
-    "description": "Build websites using HTML5 and CSS3.",
-    "price": 799,
-    "image": "https://via.placeholder.com/150"
-  }
-]
-```
-
----
-
-### 🧱 3. **Create CourseCard Component**
-
-📁 Inside `src/components/`, create:
-
-```
-CourseCard.tsx
-```
-
-Paste this code:
+Update `CourseCard.tsx` to:
 
 ```tsx
 import { Course } from '../types/Course';
@@ -72,9 +20,12 @@ import './CourseCard.css';
 
 interface Props {
   course: Course;
+  onAddToCart?: (course: Course) => void;
+  onAddToWishlist?: (course: Course) => void;
+  isWishlisted?: boolean;
 }
 
-function CourseCard({ course }: Props) {
+function CourseCard({ course, onAddToCart, onAddToWishlist, isWishlisted }: Props) {
   return (
     <div className="course-card">
       <img src={course.image} alt={course.title} />
@@ -91,6 +42,12 @@ function CourseCard({ course }: Props) {
           <>₹{course.price}</>
         )}
       </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+        <button onClick={() => onAddToCart?.(course)}>Add to Cart</button>
+        <button onClick={() => onAddToWishlist?.(course)}>
+          {isWishlisted ? '★' : '☆'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -100,43 +57,31 @@ export default CourseCard;
 
 ---
 
-### 🎨 Create `CourseCard.css` for basic style
-
-📁 Create `CourseCard.css` in the same folder and paste:
+### 🎨 2. Optional Styling: Update `CourseCard.css`
 
 ```css
-.course-card {
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 1rem;
-  width: 250px;
-  font-family: 'Montserrat', sans-serif;
-  margin: 1rem;
+.course-card button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #004aad;
+  color: white;
 }
 
-.course-card img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-}
-
-.strike {
-  text-decoration: line-through;
-  color: gray;
-  margin-right: 8px;
-}
-
-.discount {
-  color: green;
-  font-weight: bold;
+.course-card button:hover {
+  background-color: #00367a;
 }
 ```
 
 ---
 
-### 📄 4. **Update `Home.tsx` to display courses**
+### 📄 3. **Update `Home.tsx` to handle click events**
 
-Open `src/pages/Home.tsx` and replace it with:
+We'll **log** to the console for now (later we’ll wire it to context).
+
+Update `Home.tsx`:
 
 ```tsx
 import { useEffect, useState } from 'react';
@@ -146,17 +91,35 @@ import courseData from '../data/courses.json';
 
 function Home() {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
 
   useEffect(() => {
     setCourses(courseData);
   }, []);
+
+  const handleAddToCart = (course: Course) => {
+    console.log(`Added to Cart: ${course.title}`);
+    // Later: add to CartContext
+  };
+
+  const handleAddToWishlist = (course: Course) => {
+    if (wishlist.includes(course.id)) return;
+    setWishlist(prev => [...prev, course.id]);
+    console.log(`Added to Wishlist: ${course.title}`);
+  };
 
   return (
     <div>
       <h2>Discover Latest Courses on React</h2>
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {courses.map(course => (
-          <CourseCard key={course.id} course={course} />
+          <CourseCard
+            key={course.id}
+            course={course}
+            onAddToCart={handleAddToCart}
+            onAddToWishlist={handleAddToWishlist}
+            isWishlisted={wishlist.includes(course.id)}
+          />
         ))}
       </div>
     </div>
@@ -168,21 +131,21 @@ export default Home;
 
 ---
 
-### ✅ Now Test It:
+### ✅ Now test in the browser:
 
-1. Run your app (or it’ll auto-refresh):
-
-   ```
-   npm start
-   ```
-2. Go to `http://localhost:3000`
-3. You should see 2 nice course cards rendered 🎉
+1. Click **“Add to Cart”** → check console log (F12 → Console)
+2. Click **star button** → changes to filled star (`★`)
+3. Try clicking again → doesn’t duplicate wishlist (guarded)
+4. Visual confirmation ✅ — buttons are working
 
 ---
 
-Let me know once you're done and seeing the courses — and next we’ll:
+## 🔜 What’s Next?
 
-* Add buttons: ⭐ Add to Wishlist, 🛒 Add to Cart
-* Start building Wishlist and Cart logic using Context API
+Now we’ll:
 
-Ready for that?
+* Create **CartContext** and **WishlistContext**
+* Store cart/wishlist globally (so you can access from any page!)
+* Show a **cart widget** with total price
+
+Shall we set up `CartContext` next?
