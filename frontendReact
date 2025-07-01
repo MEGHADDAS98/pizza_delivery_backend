@@ -1,0 +1,44 @@
+Yes, exactly! ✅
+
+Just like you created a `pages` folder, you also create a:
+
+```
+src/components/
+```
+
+---
+
+### 🗂 Folder Purpose Recap:
+
+| Folder Name   | Purpose                                                                               |
+| ------------- | ------------------------------------------------------------------------------------- |
+| `pages/`      | Contains full **screens** or **pages** like `Home.tsx`, `Cart.tsx`                    |
+| `components/` | Contains **reusable UI blocks** like `Navbar.tsx`, `CourseCard.tsx`, `CartWidget.tsx` |
+
+---
+
+### ✅ What to do:
+
+1. Right-click on the `src` folder in VS Code
+2. Click **"New Folder"**
+3. Name it:
+
+   ```
+   components
+   ```
+4. Inside that `components` folder, create the file:
+
+   ```
+   Navbar.tsx
+   ```
+5. Also create:
+
+   ```
+   Navbar.css
+   ```
+
+---
+
+Once you've done that and pasted the code from the previous step, your navbar should appear.
+
+Let me know once it’s showing — next we’ll add mock course data and display it on the homepage 🔥
