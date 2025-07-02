@@ -1,148 +1,453 @@
-Absolutely! Here's the **complete working setup** with correct **file paths** and **code** for fixing the wishlist issue ✅
+Perfect — here's a breakdown of how we'll integrate both of your new requirements into your existing React project:
 
 ---
 
-## ✅ 1. `src/context/WishlistContext.tsx`
+## ✅ 1. **Profile Page Enhancements**
+
+We'll create a form with validation using React `useState` and conditional logic.
+
+### 🔧 Fields to include:
+
+* 📷 Profile image (left-aligned)
+* 📝 Form fields:
+
+  * Display Name
+  * First Name
+  * Last Name
+  * About Yourself
+  * Areas of Interest
+  * Are you a student or a professional?
+
+    * If professional → Show:
+
+      * Experience level: 0–5, 5–10, 10+
+      * Expertise: Backend / Frontend / Other
+
+### 🛡️ Validation Rules:
+
+* All fields must be filled
+* Save button should remain disabled if anything is empty or invalid
+
+### ✅ On Save:
+
+* Show a popup: `"Your profile has been updated"`
+
+---
+
+## ✅ 2. **Course Enhancements**
+
+* Each course card should show a **course image**
+* Clicking the course should navigate to `/course/:id` and show:
+
+  * Title
+  * Author
+  * Description
+  * Price & discount
+  * Sale timer (if <24 hrs)
+  * Video thumbnail (mock)
+  * Add to cart/wishlist buttons
+
+### ✅ What you need to add:
+
+* Add an `image` field inside each course object in `courses.json`
+
+  ```json
+  {
+    "id": 1,
+    "title": "Complete React Developer",
+    "author": "John Doe",
+    "price": 100,
+    "discountedPrice": 60,
+    "tags": ["react", "frontend"],
+    "description": "A full-stack course with React and Redux.",
+    "image": "https://example.com/image1.jpg"
+  }
+  ```
+
+---
+
+## ⏭ Next Steps
+
+Would you like me to:
+
+1. Build the **Profile page UI and logic**?
+2. Or first help you update the `courses.json` with images and wire up the **Course Details page**?
+
+Let me know your preferred next move, and I’ll write the complete code for it step by step.
+
+
+
+
+
+
+Great! Let's start with **step 1: Profile Page** — we'll create a fully functional and validated profile form, as per your description.
+
+---
+
+## ✅ Profile Page — Feature Breakdown
+
+We'll build a React component (`src/pages/Profile.tsx`) with:
+
+### 🎯 Form Fields:
+
+* Profile Image (left-aligned preview)
+* Display Name
+* First Name
+* Last Name
+* About Yourself
+* Areas of Interest
+* Role: Student / Professional
+
+  * If Professional:
+
+    * Experience: 0–5, 5–10, 10+
+    * Expertise: Backend / Frontend
+
+### 🛡️ Validations:
+
+* All required fields must be filled
+* Save button disabled if validations fail
+* Popup on Save: ✅ “Profile updated successfully”
+
+---
+
+## 📁 File: `src/pages/Profile.tsx`
 
 ```tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Course } from '../types/Course';
+import { useState } from 'react';
+import { Dialog } from '@/components/ui/dialog'; // if using a dialog lib like shadcn/ui
+import { Button } from '@/components/ui/button';
 
-interface WishlistContextType {
-  wishlist: Course[];
-  addToWishlist: (course: Course) => void;
-  removeFromWishlist: (id: string) => void;
-  isInWishlist: (id: string) => boolean;
-}
+const Profile = () => {
+  const [profileImage, setProfileImage] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [about, setAbout] = useState('');
+  const [interest, setInterest] = useState('');
+  const [role, setRole] = useState('');
+  const [experience, setExperience] = useState('');
+  const [expertise, setExpertise] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
 
-const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
+  const isValid =
+    displayName &&
+    firstName &&
+    lastName &&
+    about &&
+    interest &&
+    role &&
+    (role === 'Student' || (experience && expertise));
 
-export const useWishlist = () => {
-  const context = useContext(WishlistContext);
-  if (!context) throw new Error('useWishlist must be used within WishlistProvider');
-  return context;
-};
-
-export const WishlistProvider = ({ children }: { children: ReactNode }) => {
-  const [wishlist, setWishlist] = useState<Course[]>([]);
-
-  const addToWishlist = (course: Course) => {
-    if (wishlist.find(c => c.id === course.id)) {
-      alert(`"${course.title}" is already in your wishlist.`);
-      return;
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImage(URL.createObjectURL(file));
     }
-    setWishlist(prev => [...prev, course]);
-    alert(`"${course.title}" added to wishlist.`);
   };
 
-  const removeFromWishlist = (id: string) => {
-    setWishlist(prev => prev.filter(c => c.id !== id));
-  };
-
-  const isInWishlist = (id: string) => {
-    return wishlist.some(c => c.id === id);
+  const handleSubmit = () => {
+    if (isValid) {
+      setShowPopup(true);
+      // Save profile to backend/localStorage if needed
+    }
   };
 
   return (
-    <WishlistContext.Provider value={{ wishlist, addToWishlist, removeFromWishlist, isInWishlist }}>
-      {children}
-    </WishlistContext.Provider>
+    <div style={{ display: 'flex', gap: '2rem', padding: '2rem' }}>
+      <div>
+        <label>Profile Image:</label><br />
+        <input type="file" onChange={handleImageChange} /><br />
+        {profileImage && (
+          <img src={profileImage} alt="Profile" width="120" height="120" style={{ borderRadius: '50%' }} />
+        )}
+      </div>
+
+      <form style={{ flex: 1 }}>
+        <div>
+          <label>Display Name:</label>
+          <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+        </div>
+        <div>
+          <label>First Name:</label>
+          <input value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        </div>
+        <div>
+          <label>Last Name:</label>
+          <input value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        </div>
+        <div>
+          <label>About Yourself:</label>
+          <textarea value={about} onChange={(e) => setAbout(e.target.value)} />
+        </div>
+        <div>
+          <label>Areas of Interest:</label>
+          <input value={interest} onChange={(e) => setInterest(e.target.value)} />
+        </div>
+        <div>
+          <label>Are you a:</label>
+          <select value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="">Select</option>
+            <option value="Student">Student</option>
+            <option value="Professional">Professional</option>
+          </select>
+        </div>
+
+        {role === 'Professional' && (
+          <>
+            <div>
+              <label>Experience Level:</label>
+              <select value={experience} onChange={(e) => setExperience(e.target.value)}>
+                <option value="">Select</option>
+                <option value="0-5">0–5 years</option>
+                <option value="5-10">5–10 years</option>
+                <option value="10+">10+ years</option>
+              </select>
+            </div>
+            <div>
+              <label>Expertise:</label>
+              <select value={expertise} onChange={(e) => setExpertise(e.target.value)}>
+                <option value="">Select</option>
+                <option value="Backend">Backend</option>
+                <option value="Frontend">Frontend</option>
+              </select>
+            </div>
+          </>
+        )}
+
+        <Button
+          type="button"
+          disabled={!isValid}
+          onClick={handleSubmit}
+          style={{ marginTop: '1rem' }}
+        >
+          Save
+        </Button>
+      </form>
+
+      {showPopup && (
+        <Dialog open={showPopup} onOpenChange={setShowPopup}>
+          <p>Your profile has been updated.</p>
+        </Dialog>
+      )}
+    </div>
   );
 };
+
+export default Profile;
 ```
 
 ---
 
-## ✅ 2. `src/pages/Wishlist.tsx`
+## 🧪 Testing Tips
+
+Try:
+
+* Leaving a field empty → Save button stays disabled
+* Choosing “Professional” without choosing experience → Save disabled
+* Choosing all → Save button enabled
+* Clicking save → Popup shown
+
+---
+
+## ⏭ Next Step:
+
+Do you want me to now:
+
+1. Help you update `courses.json` with image links?
+2. Show full code for the updated **Course Details page** with description, image, timer, and action buttons?
+
+Let me know and I’ll write it out fully.
+
+
+
+Great! Let's move to **Step 2: Enhancing Courses with Images + Full Course Details Page**.
+
+---
+
+## ✅ Goal:
+
+1. **Add images** to each course in `courses.json`
+2. Show the **course image + description + video thumbnail + timer** on the `CourseDetails.tsx` page
+3. Add working **Add to Cart** and **Add to Wishlist** buttons
+4. Show a popup on successful actions
+
+---
+
+## 🧾 Step 1: Update `courses.json` (📁 `src/data/courses.json`)
+
+Here’s how to enhance the JSON:
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Complete React Developer",
+    "author": "John Doe",
+    "price": 100,
+    "discountedPrice": 60,
+    "tags": ["react", "frontend"],
+    "description": "Learn React from scratch and build real-world projects.",
+    "image": "https://images.unsplash.com/photo-1581091012184-d0c6c2d73bf0",
+    "saleEndsAt": "2025-07-03T00:00:00Z"
+  },
+  {
+    "id": 2,
+    "title": "Mastering TypeScript",
+    "author": "Jane Smith",
+    "price": 90,
+    "discountedPrice": 90,
+    "tags": ["typescript", "frontend"],
+    "description": "Become a TypeScript pro with in-depth tutorials and real apps.",
+    "image": "https://images.unsplash.com/photo-1603791440384-56cd371ee9a7",
+    "saleEndsAt": "2025-07-05T00:00:00Z"
+  }
+]
+```
+
+> ✅ Note: Add `image`, `description`, and optional `saleEndsAt`.
+
+---
+
+## 🧾 Step 2: Update `CourseDetails.tsx` (`src/pages/CourseDetails.tsx`)
 
 ```tsx
-import { useWishlist } from '../context/WishlistContext';
+import { useParams } from 'react-router-dom';
+import courseData from '../data/courses.json';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
+import { useState, useEffect } from 'react';
 
-function Wishlist() {
-  const { wishlist, removeFromWishlist } = useWishlist();
-  const { addToCart } = useCart();
+const CourseDetails = () => {
+  const { id } = useParams();
+  const course = courseData.find(c => c.id === Number(id));
 
-  const moveToCart = (course: any) => {
-    addToCart(course);
-    removeFromWishlist(course.id);
+  const { addToCart, isInCart } = useCart();
+  const { addToWishlist, isInWishlist } = useWishlist();
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    if (course?.saleEndsAt) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        const saleEnd = new Date(course.saleEndsAt);
+        const diff = saleEnd.getTime() - now.getTime();
+
+        if (diff < 86400000 && diff > 0) {
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff / (1000 * 60)) % 60);
+          setTimeLeft(`${hours}h ${minutes}m left for sale`);
+        } else {
+          setTimeLeft('');
+        }
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [course]);
+
+  const handleAddToCart = () => {
+    if (!isInCart(course!.id)) {
+      addToCart(course!);
+      setShowPopup(true);
+    } else {
+      alert(`"${course?.title}" already exists in cart.`);
+    }
   };
 
+  const handleAddToWishlist = () => {
+    if (!isInWishlist(course!.id)) {
+      addToWishlist(course!);
+      setShowPopup(true);
+    } else {
+      alert(`"${course?.title}" already exists in wishlist.`);
+    }
+  };
+
+  if (!course) return <p>Course not found.</p>;
+
   return (
-    <div>
-      <h2>⭐ My Wishlist</h2>
-      {wishlist.length === 0 ? (
-        <p>Your wishlist is empty.</p>
-      ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-          {wishlist.map(course => (
-            <div key={course.id} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px', width: '250px' }}>
-              <h4>{course.title}</h4>
-              <p>{course.description}</p>
-              <p>Price: ₹{course.discountedPrice || course.price}</p>
-              <button onClick={() => moveToCart(course)}>Move to Cart</button>
-              <button onClick={() => removeFromWishlist(course.id)}>Remove</button>
-            </div>
-          ))}
+    <div style={{ padding: '2rem' }}>
+      <nav>
+        <a href="/">All Courses</a> → <strong>{course.title}</strong>
+      </nav>
+
+      <div style={{ display: 'flex', gap: '2rem', marginTop: '2rem' }}>
+        <img src={course.image} alt={course.title} style={{ width: '300px', borderRadius: '8px' }} />
+
+        <div>
+          <h2>{course.title}</h2>
+          <p><strong>Author:</strong> {course.author}</p>
+          <p>{course.description}</p>
+
+          {course.discountedPrice < course.price ? (
+            <p>
+              <span style={{ textDecoration: 'line-through' }}>${course.price}</span>{' '}
+              <strong>${course.discountedPrice}</strong>
+            </p>
+          ) : (
+            <p><strong>${course.price}</strong></p>
+          )}
+
+          {timeLeft && <p style={{ color: 'red' }}>{timeLeft}</p>}
+
+          <div style={{ marginTop: '1rem' }}>
+            <button onClick={handleAddToCart}>Add to Cart</button>
+            <button onClick={handleAddToWishlist} style={{ marginLeft: '1rem' }}>Add to Wishlist</button>
+          </div>
+
+          <div style={{ marginTop: '2rem' }}>
+            <h4>Course Preview</h4>
+            <img
+              src="https://images.unsplash.com/photo-1581092334500-6b0d2f2c1f47"
+              alt="Video preview"
+              style={{ width: '100%', maxWidth: '500px', cursor: 'pointer' }}
+              onClick={() => alert("This would play a course video")}
+            />
+          </div>
+        </div>
+      </div>
+
+      {showPopup && (
+        <div style={{
+          position: 'fixed', bottom: 30, right: 30,
+          background: '#333', color: 'white', padding: '1rem', borderRadius: '5px'
+        }}>
+          Added successfully!
         </div>
       )}
     </div>
   );
-}
+};
 
-export default Wishlist;
+export default CourseDetails;
 ```
 
 ---
 
-## ✅ 3. `src/index.tsx`
+## 🧪 Result
 
-Make sure your app is wrapped with both providers:
+When you:
 
-```tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from './App';
-import './index.css';
-import { CartProvider } from './context/CartContext';
-import { WishlistProvider } from './context/WishlistContext';
-
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-
-root.render(
-  <BrowserRouter>
-    <CartProvider>
-      <WishlistProvider>
-        <App />
-      </WishlistProvider>
-    </CartProvider>
-  </BrowserRouter>
-);
-```
+* Click a course card → navigates to `/course/:id`
+* You see:
+  ✅ Image
+  ✅ Title, Author, Description
+  ✅ Price with discount
+  ✅ Timer (if sale < 24hrs left)
+  ✅ Add to cart/wishlist buttons
+  ✅ Video image preview (mock alert)
 
 ---
 
-## ✅ 4. `src/pages/Home.tsx` (make sure you use the context properly)
+## ✅ Next Step Options:
 
-```tsx
-const { addToWishlist, isInWishlist } = useWishlist();
-...
-<CourseCard
-  ...
-  onAddToWishlist={handleAddToWishlist}
-  isWishlisted={isInWishlist(course.id)}
-/>
-```
+Would you like me to:
 
----
+1. Add search, sort, and pagination now?
+2. Show unit test setup for these components?
+3. Or review the whole code for final cleanup and push to GitHub?
 
-## ✅ Once All This Is Done
-
-Now when you:
-
-* ⭐ Click "Add to Wishlist" on a course → full course is added to global context
-* ✅ Go to `/wishlist` → it shows correctly
-
-Let me know once this works — you’ve fully fixed the wishlist issue 💪
-Ready to generate a README or unit test next?
+Let me know your priority!
