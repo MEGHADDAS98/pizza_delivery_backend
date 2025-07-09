@@ -1,0 +1,113 @@
+openapi: 3.0.0
+
+info:
+  title: Your API Title
+  version: 1.0.0
+  description: A short description of your API
+
+servers:
+  - url: https://api.example.com/{basePath}
+    description: Primary production server
+    variables:
+      basePath:
+        default: v1
+        description: Base path for all endpoints
+
+security:
+  - XAPIKey: []
+    XAPISecret: []
+
+paths:
+  /api/your-path:
+    post:
+      operationId: createSomething
+      summary: Create something
+      description: Performs creation of “something” in the system.
+      x-intent:
+        description: User wants to create something.
+        examples:
+          default:
+            summary: Example intent
+            value:
+              foo: bar
+      x-trigger-phrases:
+        - "create something"
+        - "make a new item"
+      x-contextual-guidance:
+        - "Ensure user is authenticated"
+      x-usage-guidance:
+        - "Use this endpoint to add new entries"
+      requestBody:
+        $ref: '#/components/requestBodies/UserRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+components:
+  requestBodies:
+    UserRequest:
+      description: Payload for creating “something”
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserRequest'
+          examples:
+            sample:
+              summary: A sample request
+              value:
+                name: "Alice"
+                age: 30
+
+  schemas:
+    UserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
+      required:
+        - name
+        - age
+
+    APIResponse:
+      type: object
+      description: Wrapper for all responses
+      properties:
+        data:
+          $ref: '#/components/schemas/SomeData'
+        request:
+          $ref: '#/components/schemas/UserRequest'
+        status:
+          $ref: '#/components/schemas/Status'
+        type:
+          type: string
+
+    SomeData:
+      type: object
+      properties:
+        id:
+          type: string
+
+    Status:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+
+  securitySchemes:
+    XAPIKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    XAPISecret:
+      type: apiKey
+      in: header
+      name: X-API-Secret
