@@ -1,0 +1,71 @@
+import os
+import shutil
+import json
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def process_files_local(source_directory, processed_directory, failed_directory):
+    """
+    Processes file pairs from source_directory.
+    Moves them to processed_directory or failed_directory based on processing outcome.
+    """
+    # List all files in the source directory
+    all_files = os.listdir(source_directory)
+    # Group by base name
+    list_files = {}
+    for file_name in all_files:
+        if '.' not in file_name:
+            continue
+        base_name, ext = file_name.rsplit('.', 1)
+        if base_name not in list_files:
+            list_files[base_name] = {}
+        if ext == "json":
+            list_files[base_name]["file_metadata"] = file_name
+        else:
+            list_files[base_name]["real_file"] = file_name
+
+    for base_name, files in list_files.items():
+        if "file_metadata" not in files or "real_file" not in files:
+            logger.error(f"Missing file pair for '{base_name}': {files}")
+            continue
+
+        file_metadata_name = files["file_metadata"]
+        real_file_name = files["real_file"]
+
+        try:
+            # Read and parse metadata
+            with open(os.path.join(source_directory, file_metadata_name), 'r') as f:
+                metadata = json.load(f)
+            # Read content file
+            with open(os.path.join(source_directory, real_file_name), 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+
+            # Short dummy processing: succeed if the content file is not empty, else fail
+            process_success = len(content.strip()) > 0
+
+            if process_success:
+                # Move both files to processed
+                shutil.move(os.path.join(source_directory, real_file_name), os.path.join(processed_directory, real_file_name))
+                shutil.move(os.path.join(source_directory, file_metadata_name), os.path.join(processed_directory, file_metadata_name))
+                logger.info(f"Processed successfully: {base_name}")
+            else:
+                # Move both files to failed
+                shutil.move(os.path.join(source_directory, real_file_name), os.path.join(failed_directory, real_file_name))
+                shutil.move(os.path.join(source_directory, file_metadata_name), os.path.join(failed_directory, file_metadata_name))
+                logger.error(f"Processing failed (empty file): {base_name}")
+
+        except Exception as e:
+            # On any exception, move both to failed
+            shutil.move(os.path.join(source_directory, real_file_name), os.path.join(failed_directory, real_file_name))
+            shutil.move(os.path.join(source_directory, file_metadata_name), os.path.join(failed_directory, file_metadata_name))
+            logger.error(f"Error processing '{base_name}': {e}")
+
+# Example usage
+if __name__ == "__main__":
+    process_files_local(
+        source_directory="./unprocessed",
+        processed_directory="./processed",
+        failed_directory="./failed"
+    )
