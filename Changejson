@@ -1,0 +1,25 @@
+import ast
+
+def txt_to_dict(txt_path):
+    """
+    Reads a .txt file containing a Python-style dictionary as a string,
+    and returns it as a Python dict (or list).
+    """
+    with open(txt_path, "r", encoding="utf-8") as file:
+        data_str = file.read().strip()
+    try:
+        # Safely evaluate the string to a Python object (dict/list)
+        result = ast.literal_eval(data_str)
+        print("Successfully converted to dict (or list)!")
+        return result
+    except Exception as e:
+        print("Failed to convert to dict:", e)
+        return None
+
+# Example usage:
+dict_result = txt_to_dict("output.txt")
+if dict_result is not None:
+    print("Now you can use it like a dict!")
+    # Example: print(dict_result.keys())
+else:
+    print("Conversion failed. Please check your file content.")
