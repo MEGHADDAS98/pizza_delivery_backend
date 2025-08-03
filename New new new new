@@ -1,0 +1,43 @@
+import json
+import ast
+
+def clean_and_convert_to_json(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        raw_data = file.read()
+
+    # Recursively attempt to parse string to dict
+    def recursive_parse(data):
+        if isinstance(data, dict):
+            return {k: recursive_parse(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [recursive_parse(element) for element in data]
+        elif isinstance(data, str):
+            try:
+                # Attempt to interpret the string as Python literal
+                parsed_data = ast.literal_eval(data)
+                # If parsing successful, recursively parse again
+                return recursive_parse(parsed_data)
+            except (ValueError, SyntaxError):
+                # Return original data if it can't be parsed
+                return data.strip()
+        else:
+            return data
+
+    try:
+        # Initial parsing attempt
+        parsed_json = ast.literal_eval(raw_data)
+    except (ValueError, SyntaxError):
+        raise ValueError("File content is not parseable as a JSON-like structure.")
+
+    cleaned_data = recursive_parse(parsed_json)
+
+    # Writing cleaned JSON data
+    with open('cleaned_output.json', 'w', encoding='utf-8') as json_file:
+        json.dump(cleaned_data, json_file, indent=4)
+
+    return cleaned_data
+
+# Usage
+file_path = 'messy_data.txt'  # your input messy file
+cleaned_json = clean_and_convert_to_json(file_path)
+print(json.dumps(cleaned_json, indent=4))
