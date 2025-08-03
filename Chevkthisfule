@@ -1,0 +1,46 @@
+import json
+
+def deeply_parse(obj):
+    """Recursively parse nested JSON strings into dictionaries/lists."""
+    if isinstance(obj, str):
+        try:
+            # Attempt to parse the string as JSON
+            parsed = json.loads(obj)
+            # Recurse in case there are nested JSON strings
+            return deeply_parse(parsed)
+        except json.JSONDecodeError:
+            return obj  # Return as-is if it's not JSON
+    elif isinstance(obj, dict):
+        return {k: deeply_parse(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [deeply_parse(item) for item in obj]
+    else:
+        return obj
+
+def clean_json_file(input_path: str, output_path: str):
+    """
+    Read a JSON file, deeply parse nested JSON strings,
+    and save the cleaned output.
+    """
+    try:
+        # Read the original JSON file
+        with open(input_path, 'r', encoding='utf-8') as f:
+            raw_data = json.load(f)
+        
+        # Process nested JSON strings
+        cleaned_data = deeply_parse(raw_data)
+        
+        # Save the cleaned data
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(cleaned_data, f, indent=4, ensure_ascii=False)
+        
+        print(f"✅ Successfully cleaned JSON saved to {output_path}")
+        return cleaned_data
+    
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON parsing error: {e}")
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+
+# Usage
+clean_json_file("schema.json", "cleaned_schema.json")
